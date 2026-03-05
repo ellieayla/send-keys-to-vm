@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='send-keys-to-vm',
-    version='1.0',
+    version='1.0.1',
     py_modules=["send_keys_to_vm"],
     install_requires=['pyVmomi>=6.5'],
     license="Apache Software License 2.0",
