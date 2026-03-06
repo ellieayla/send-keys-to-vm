@@ -16,6 +16,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
       - name: build
         run: uv build
 
