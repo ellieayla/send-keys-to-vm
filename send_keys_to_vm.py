@@ -63,8 +63,7 @@ CHARACTERS.update(dict(_generate(':"~<>?', 0x33, (KEY_MOD_LSHIFT,))))
 KEYS = copy(CHARACTERS)
 
 # Function keys
-KEYS.update(dict(_generate(["F%d" for d in range(1,12)], 0x3a, ())))
-
+KEYS.update(dict(_generate(["F%d" % d for d in range(1,12+1)], 0x3a, ())))
 
 KEYS.update({
     'enter': (0x28, ()),
