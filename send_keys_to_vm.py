@@ -5,7 +5,11 @@ from __future__ import print_function, unicode_literals
 
 from string import ascii_lowercase, ascii_uppercase
 from copy import copy
+import fileinput
 import logging
+import ssl
+
+from pyVim.connect import SmartConnect
 from pyVmomi import vim
 
 logger = logging.getLogger(__name__)
@@ -40,7 +44,10 @@ CHARACTERS = dict()
 CHARACTERS.update(dict(_generate(ascii_lowercase, 0x04)))
 CHARACTERS.update(dict(_generate("1234567890", 0x1e)))
 
+CHARACTERS.update(dict(_generate("\t", 0x2b)))
 CHARACTERS.update(dict(_generate(' ', 0x2c)))
+CHARACTERS.update(dict(_generate("\n", 0x28)))
+CHARACTERS.update(dict(_generate("\r", 0x28)))
 
 CHARACTERS.update(dict(_generate('-=[]\\', 0x2d)))
 CHARACTERS.update(dict(_generate(";'`,./", 0x33)))
@@ -66,6 +73,7 @@ KEYS.update({
     'backspace': (0x2a, ()),
     'tab': (0x2b, ()),
 
+    'capslock': (0x39, ()),
     'sysrq': (0x46, ()), 'printscreen': (0x46, ()),
     'scrolllock': (0x47, ()),
     'pause': (0x48, ()),
@@ -78,7 +86,8 @@ KEYS.update({
     'right': (0x4f, ()),
     'left': (0x50, ()),
     'down': (0x51, ()),
-    'up': (0x52, ())
+    'up': (0x52, ()),
+    'win': (0x5b, ()),
 })
 
 
@@ -147,7 +156,7 @@ def _arguments():
         import shutil
         import os
         os.environ['COLUMNS'] = str(min([120, shutil.get_terminal_size().columns]))
-    except:
+    except Exception:
         pass  # If that's not possible, carry on.
 
     top = argparse.ArgumentParser()
@@ -156,10 +165,11 @@ def _arguments():
                      nargs='*',
                      help="Keys to transmit, like 'a' or 'up' or 'ctrl+alt+delete'. Can be listed multiple times, with each instance mapped to a single transmission.")
 
-    top.add_argument("-c", "--characters", default="", metavar="C",
-                     help="List of characters in a quoted string, like 'abcd'. Can be listed multiple times.")
-
-    top.add_argument("--raw-scancode", default=[], action="append", type=int, metavar="I", help="An integer scancode. Can be listed multiple times.")
+    top.add_argument("--file", default=[], action="append", metavar="in.txt",
+                     help="Read characters from a file. Treat - as stdin. Handles newlines.")
+    top.add_argument("--characters", "-c", default=[], action="append", metavar="'a long line of text'",
+                     help="List of characters in a quoted string. Can be listed multiple times.")
+    top.add_argument("--raw-scancode", default=[], action="append", type=int, metavar="I", help="An integer scancode. Escape hatch to send something outside the supported character list. Can be listed multiple times.")
 
     top.add_argument("--modifier", default=[], action="append", choices=MODIFIERS.keys(), help="Modifier to be added to everything transmitted. Can be listed multiple times.")
 
@@ -178,7 +188,8 @@ def _arguments():
 
     accountgroup = top.add_argument_group("vSphere")
     accountgroup.add_argument("--hostname",
-                              default="localhost",
+                              #default="localhost",
+                              required=True,
                               metavar='vCenter Server or ESXi host')
     accountgroup.add_argument("--port", default=443, metavar='vCenter Server Port')
     accountgroup.add_argument("--username",
@@ -193,10 +204,7 @@ def _arguments():
     return top, args
 
 
-if __name__ == "__main__":
-    from pyVim.connect import SmartConnect
-    import ssl
-
+def main():
     parser, args = _arguments()
 
     _setup_logger(args)
@@ -205,11 +213,21 @@ if __name__ == "__main__":
     global_requested_modifiers = [MODIFIERS[k] for k in MODIFIERS if k in args.modifier]
 
     transmit = []
-    for c in args.characters:
-        scancode, modifier = CHARACTERS[c]
-        if global_requested_modifiers:
-            modifier = global_requested_modifiers + list(modifier)
-        transmit.append(hid_scancode_to_key_event(scancode, modifier))
+
+    if args.file:
+        for line in fileinput.input(files=args.file):
+            for c in line:
+                scancode, modifier = CHARACTERS[c]
+                if global_requested_modifiers:
+                    modifier = global_requested_modifiers + list(modifier)
+                transmit.append(hid_scancode_to_key_event(scancode, modifier))
+
+    for line in args.characters:
+        for c in line:
+            scancode, modifier = CHARACTERS[c]
+            if global_requested_modifiers:
+                modifier = global_requested_modifiers + list(modifier)
+            transmit.append(hid_scancode_to_key_event(scancode, modifier))
 
     for scancode in args.raw_scancode:
         transmit.append(hid_scancode_to_key_event(scancode, global_requested_modifiers))
@@ -278,3 +296,7 @@ if __name__ == "__main__":
 
     n = transmit_key_events(virtualmachine=vm, q=transmit)
     logger.debug("Sent %d key events." % n)
+
+
+if __name__ == "__main__":
+    main()
