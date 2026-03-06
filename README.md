@@ -20,11 +20,19 @@ Pass characters as a quoted string.
 send-keys-to-vm --characters "sudo tailscale up --auth-key=tskey-auth-1234567890 --ssh"
 ```
 
+Restart, and trigger a network boot.
+
+```sh
+send-keys-to-vm ctrl+alt+delete
+sleep 1
+send-keys-to-vm F12
+```
+
 Open a config file for appending, then stream in some text.
 
 ```sh
 echo "cat >> .ssh/authorized_keys" | send-keys-to-vm --moref 24
-`cat ~/.ssh/id_rsa.pub | send-keys-to-vm --moref 24 --file -`
+cat ~/.ssh/id_rsa.pub | send-keys-to-vm --moref 24 --file -
 .venv/bin/send-keys-to-vm --moref 24 ctrl+d
 ```
 
