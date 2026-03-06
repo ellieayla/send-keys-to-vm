@@ -1,6 +1,6 @@
 [project]
 name = "send-keys-to-vm"
-version = "1.1.0"
+dynamic = ["version"]
 description = "Send USB Scancodes to a VMware vSphere Virtual Machine"
 urls = { Repository = "https://github.com/ellieayla/send-keys-to-vm" }
 authors = [
@@ -24,7 +24,7 @@ classifiers = [
 send-keys-to-vm = "send_keys_to_vm:main"
 
 [build-system]
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 80.0", "setuptools-scm[simple]>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
