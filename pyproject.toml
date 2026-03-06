@@ -1,0 +1,31 @@
+[project]
+name = "send-keys-to-vm"
+version = "1.1.0"
+description = "Send USB Scancodes to a VMware vSphere Virtual Machine"
+urls = { Repository = "https://github.com/ellieayla/send-keys-to-vm" }
+authors = [
+      {name = "Ellie Ayla", email = "git@verselogic.net"},
+]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.7"
+dependencies = ["pyVmomi>=6.5"]
+
+classifiers = [
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'Operating System :: OS Independent',
+]
+
+[project.scripts]
+send-keys-to-vm = "send_keys_to_vm:main"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["send_keys_to_vm"]

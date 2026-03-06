@@ -3,18 +3,36 @@ Transmit keystrokes to a running vSphere virtual machine via [pyvmomi](https://g
 Can be used either as a command-line tool directly, or import as a module.
 
 
+## Usage
 ```
-usage: send_keys_to_vm.py [-h] [-c C] [--raw-scancode I] [--modifier {shift,alt,meta,ctrl}]
-                          [--moref MOREF] [--uuid UUID] [--ip IP]
-                          [-v] [--whatif] [--insecure]
-                          [--hostname vCenter-Server] [--port 443] [--username USERNAME] [--password PASSWORD]
-                          [keys [keys ...]]
-
+usage: send-keys-to-vm [--file in.txt] [--characters 'a long line of text'] [--raw-scancode I]
+                       [--modifier {shift,alt,meta,ctrl}] [--moref MOREF] [--uuid UUID] [--ip IP] [-v] [--whatif]
+                       [--insecure] [--hostname vCenter Server or ESXi host] [--port vCenter Server Port]
+                       [--username USERNAME] [--password PASSWORD]
+                       [keys ...]
 ```
 
-`./send_keys_to_vm.py a b C ctrl+d --whatif`
+## Examples
 
+Pass characters as a quoted string.
+
+```sh
+send-keys-to-vm --characters "sudo tailscale up --auth-key=tskey-auth-1234567890 --ssh"
 ```
+
+Open a config file for appending, then stream in some text.
+
+```sh
+echo "cat >> .ssh/authorized_keys" | send-keys-to-vm --moref 24
+`cat ~/.ssh/id_rsa.pub | send-keys-to-vm --moref 24 --file -`
+.venv/bin/send-keys-to-vm --moref 24 ctrl+d
+```
+
+Dump raw KeyEvent list.
+
+```sh
+send-keys-to-vm a b C ctrl+d --whatif
+
 (vim.vm.UsbScanCodeSpec.KeyEvent) {
    dynamicType = <unset>,
    dynamicProperty = (vmodl.DynamicProperty) [],
